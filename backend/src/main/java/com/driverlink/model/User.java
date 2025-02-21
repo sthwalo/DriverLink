@@ -5,7 +5,10 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 /** Represents a user in the system. This entity stores user information and credentials. */
@@ -17,8 +20,9 @@ import lombok.NoArgsConstructor;
       @UniqueConstraint(columnNames = "email")
     })
 @Data
+@EqualsAndHashCode(callSuper = true)
 @NoArgsConstructor
-public class User {
+public class User extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
@@ -30,7 +34,7 @@ public class User {
 
   @NotBlank(message = "Email is required")
   @Email(message = "Email should be valid")
-  @Column(nullable = false)
+  @Column(nullable = false, unique = true)
   private String email;
 
   @NotBlank(message = "Password is required")
@@ -38,14 +42,17 @@ public class User {
   @Column(nullable = false)
   private String password;
 
-  @Size(max = 50)
-  private String role;
+  @Column(nullable = false)
+  private boolean active = true;
+
+  @ElementCollection(fetch = FetchType.EAGER)
+  @CollectionTable(name = "user_roles", joinColumns = @JoinColumn(name = "user_id"))
+  @Enumerated(EnumType.STRING)
+  @Column(name = "role")
+  private Set<Role> roles = new HashSet<>();
 
   @Column(nullable = false)
   private LocalDateTime createdAt;
-
-  @Column(nullable = false)
-  private boolean active = true;
 
   @PrePersist
   protected void onCreate() {
@@ -79,8 +86,8 @@ public class User {
       return this;
     }
 
-    public Builder role(String role) {
-      user.setRole(role);
+    public Builder role(Set<Role> roles) {
+      user.setRoles(roles);
       return this;
     }
 

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
 import java.time.LocalDateTime;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -45,14 +46,12 @@ public class UserDTO {
               + "one lowercase letter, one number and one special character)")
   private String password;
 
-  @NotNull(message = "Role is required")
-  @Pattern(regexp = "^(ADMIN|USER|DRIVER)$", message = "Role must be either ADMIN, USER or DRIVER")
-  @Schema(description = "User role", example = "USER")
-  private String role;
+  @Schema(description = "User roles")
+  private Set<String> roles;
+
+  @Schema(description = "Whether the account is active")
+  private Boolean active;
 
   @Schema(description = "Account creation date")
   private LocalDateTime createdAt;
-
-  @Schema(description = "Whether the account is active")
-  private boolean active;
 }

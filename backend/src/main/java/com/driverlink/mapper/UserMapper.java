@@ -1,8 +1,14 @@
 package com.driverlink.mapper;
 
 import com.driverlink.dto.UserDTO;
+import com.driverlink.model.Role;
 import com.driverlink.model.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Mapper class to convert between User entity and UserDTO. Follows the principle of separation of
@@ -21,10 +27,11 @@ public class UserMapper {
     dto.setId(user.getId());
     dto.setUsername(user.getUsername());
     dto.setEmail(user.getEmail());
-    dto.setRole(user.getRole());
-    dto.setCreatedAt(user.getCreatedAt());
     dto.setActive(user.isActive());
-    // Password is intentionally not mapped for security
+    dto.setCreatedAt(user.getCreatedAt());
+    dto.setRoles(user.getRoles().stream()
+        .map(Role::name)
+        .collect(Collectors.toSet()));
     return dto;
   }
 
@@ -34,17 +41,13 @@ public class UserMapper {
       return null;
     }
 
-    return User.builder()
-        .username(dto.getUsername())
-        .email(dto.getEmail())
-        .password(dto.getPassword())
-        .role(dto.getRole())
-        .active(dto.isActive())
-        .build();
+    User user = new User();
+    updateEntity(user, dto);
+    return user;
   }
 
   /** Updates an existing User entity with DTO data. Only updates non-null fields from the DTO. */
-  public void updateEntityFromDTO(UserDTO dto, User user) {
+  public void updateEntity(User user, UserDTO dto) {
     if (dto == null || user == null) {
       return;
     }
@@ -58,8 +61,23 @@ public class UserMapper {
     if (dto.getPassword() != null) {
       user.setPassword(dto.getPassword());
     }
-    if (dto.getRole() != null) {
-      user.setRole(dto.getRole());
+    if (dto.getRoles() != null && !dto.getRoles().isEmpty()) {
+      Set<Role> roles = dto.getRoles().stream()
+          .map(roleStr -> {
+            try {
+              return Role.valueOf(roleStr.toUpperCase());
+            } catch (IllegalArgumentException e) {
+              throw new IllegalArgumentException("Invalid role: " + roleStr);
+            }
+          })
+          .collect(Collectors.toSet());
+      user.setRoles(roles);
+    } else {
+      // Set default role if none provided
+      user.setRoles(Collections.singleton(Role.ROLE_USER));
+    }
+    if (dto.getActive() != null) {
+      user.setActive(dto.getActive());
     }
   }
 }

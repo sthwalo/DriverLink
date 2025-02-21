@@ -35,3 +35,9 @@ cors.allowed-methods=GET,POST,PUT,DELETE,OPTIONS
 cors.allowed-headers=Authorization,Content-Type
 cors.exposed-headers=Authorization
 cors.allow-credentials=true
+
+# Flyway Configuration
+spring.flyway.enabled=true
+spring.flyway.baseline-on-migrate=true
+spring.flyway.locations=classpath:db/migration
+spring.flyway.validate-on-migrate=true
